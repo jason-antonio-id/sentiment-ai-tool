@@ -1,111 +1,173 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, request
 from snownlp import SnowNLP
-import pandas as pd
-import io
-import jieba
 
 app = Flask(__name__)
 
-HTML_TEMPLATE = '''
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Chinese Sentiment Analyzer - AI Tool</title>
-    <style>
-        body { font-family: Arial; max-width: 800px; margin: 50px auto; padding: 20px; }
-        .container { background: #f8f9fa; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        input[type="text"] { width: 100%; padding: 15px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { background: #007bff; color: white; padding: 15px 30px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; }
-        button:hover { background: #0056b3; }
-        .result { margin-top: 30px; padding: 20px; border-radius: 8px; }
-        .positive { background: #d4edda; color: #155724; }
-        .negative { background: #f8d7da; color: #721c24; }
-        .neutral { background: #fff3cd; color: #856404; }
-        .emoji { font-size: 30px; }
-        .stats { display: flex; justify-content: space-around; margin-top: 20px; }
-        .stat-box { text-align: center; padding: 15px; background: white; border-radius: 8px; }
-        h1 { color: #333; text-align: center; }
-        .contact { text-align: center; margin-top: 30px; padding: 20px; background: #e9ecef; border-radius: 8px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🇨🇳 Chinese Sentiment Analyzer</h1>
-        <p>Analyze customer reviews from Taobao/Shopee/WeChat</p>
-        
-        <form method="POST">
-            <input type="text" name="review" placeholder="输入中文评论... (e.g. 这个手机电池很棒！)" required>
-            <button type="submit">🔍 Analyze Sentiment</button>
-        </form>
-        
-        {% if result %}
-        <div class="result {{ result_class }}">
-            <div style="display: flex; align-items: center;">
-                <span class="emoji">{{ emoji }}</span>
-                <div style="margin-left: 20px;">
-                    <h2>{{ label }}</h2>
-                    <p><strong>Score:</strong> {{ score }}</p>
-                    <p><strong>Review:</strong> {{ review }}</p>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-        
-        <div class="stats">
-            <div class="stat-box">
-                <h3>😊 Positive</h3>
-                <p>80% accuracy</p>
-            </div>
-            <div class="stat-box">
-                <h3>😞 Negative</h3>
-                <p>85% accuracy</p>
-            </div>
-            <div class="stat-box">
-                <h3>😐 Neutral</h3>
-                <p>75% accuracy</p>
-            </div>
-        </div>
-        
-        <div class="contact">
-            <h3>Built for Chinese Businesses</h3>
-            <p>Monitor Taobao/Shopee reviews automatically</p>
-            <p>📱 WhatsApp: +60xxxxxxxxx | 💬 WeChat: your_id</p>
-        </div>
-    </div>
-</body>
-</html>
-'''
-
-@app.route('/', methods=['GET', 'POST'])
+@app.route("/")
 def home():
-    result = None
-    if request.method == 'POST':
-        review = request.form['review']
-        s = SnowNLP(review)
-        score = s.sentiments
-        
-        if score > 0.6:
-            label = "Positive 😊"
-            result_class = "positive"
-            emoji = "😊"
-        elif score < 0.4:
-            label = "Negative 😞" 
-            result_class = "negative"
-            emoji = "😞"
-        else:
-            label = "Neutral 😐"
-            result_class = "neutral"
-            emoji = "😐"
-        
-        result = {
-            'review': review,
-            'label': label,
-            'score': f"{score:.2f}",
-            'result_class': result_class,
-            'emoji': emoji
-        }
-    
-    return render_template_string(HTML_TEMPLATE, **(result or {}))
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>🇨🇳 Chinese Sentiment Analyzer</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+                font-family: 'Segoe UI', Arial, sans-serif; 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
+            }
+            .container { 
+                background: white; 
+                padding: 40px; 
+                border-radius: 20px; 
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                max-width: 500px; 
+                width: 90%;
+                text-align: center;
+            }
+            h1 { 
+                color: #333; 
+                margin-bottom: 10px; 
+                font-size: 28px;
+            }
+            .subtitle { 
+                color: #666; 
+                margin-bottom: 30px; 
+                font-size: 16px;
+            }
+            input { 
+                width: 100%; 
+                padding: 18px; 
+                font-size: 16px; 
+                border: 2px solid #e1e5e9; 
+                border-radius: 12px; 
+                margin-bottom: 20px;
+                transition: all 0.3s;
+            }
+            input:focus { 
+                outline: none; 
+                border-color: #667eea; 
+                box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+            }
+            button { 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white; 
+                padding: 18px 40px; 
+                font-size: 16px; 
+                border: none; 
+                border-radius: 12px; 
+                cursor: pointer;
+                transition: transform 0.2s;
+            }
+            button:hover { transform: translateY(-2px); }
+            .contact { 
+                margin-top: 30px; 
+                padding: 20px; 
+                background: #f8f9fa; 
+                border-radius: 12px;
+                font-size: 14px;
+                color: #666;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🇨🇳 Sentiment Analyzer</h1>
+            <p class="subtitle">Analyze Taobao/Shopee reviews instantly</p>
+            
+            <form method="POST" action="/analyze">
+                <input type="text" name="review" placeholder="输入中文评论... (e.g. 这个手机电池很棒！)" required>
+                <button type="submit">🔍 Analyze Now</button>
+            </form>
+            
+            <div class="contact">
+                <p>Built for Chinese businesses | WhatsApp: +62852-6255-2796</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
 
-if __name__ == '__main__':
+@app.route("/analyze", methods=["POST"])
+def analyze():
+    review = request.form["review"]
+    s = SnowNLP(review)
+    score = s.sentiments
+
+    if score > 0.6:
+        label = "Positive 😊"
+        color = "#d4edda"
+        emoji = "🎉"
+    elif score < 0.4:
+        label = "Negative 😞"
+        color = "#f8d7da"
+        emoji = "⚠️"
+    else:
+        label = "Neutral 😐"
+        color = "#fff3cd"
+        emoji = "➡️"
+
+    return f'''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Result - Sentiment Analyzer</title>
+        <style>
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{ 
+                font-family: 'Segoe UI', Arial, sans-serif; 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
+            }}
+            .container {{ 
+                background: white; 
+                padding: 40px; 
+                border-radius: 20px; 
+                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+                max-width: 500px; 
+                width: 90%;
+                text-align: center;
+            }}
+            .result {{ 
+                background: {color}; 
+                padding: 30px; 
+                border-radius: 15px; 
+                margin: 20px 0;
+            }}
+            .emoji {{ font-size: 50px; margin-bottom: 20px; }}
+            .score {{ font-size: 48px; font-weight: bold; color: #333; margin: 20px 0; }}
+            button,a {{ 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white; 
+                padding: 15px 30px; 
+                text-decoration: none; 
+                border-radius: 12px; 
+                display: inline-block;
+                margin-top: 20px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>{emoji} Result</h1>
+            <div class="result">
+                <div class="emoji">{emoji}</div>
+                <h2>{label}</h2>
+                <div class="score">{round(score, 2)}</div>
+                <p><strong>Review:</strong><br>{review}</p>
+            </div>
+            <a href="/">← Analyze Another</a>
+        </div>
+    </body>
+    </html>
+    '''
+
+if __name__ == "__main__":
     app.run(debug=True)
