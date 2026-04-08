@@ -85,7 +85,7 @@ def home():
             </form>
             
             <div class="contact">
-                <p>Built for Chinese businesses | WhatsApp: +62852-6255-2796</p>
+                <p>Built for Chinese businesses | WhatsApp: +62852-6455-2796| WeChat: wxid_pxnd52vvyqtx22</p>
             </div>
         </div>
     </body>
